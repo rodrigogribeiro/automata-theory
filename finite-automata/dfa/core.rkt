@@ -1,8 +1,8 @@
 #lang racket
 
 (require syntax/parse
-         "fa.rkt"
-         "../utils/dot.rkt"
+         "../fa.rkt"
+         "../../utils/dot.rkt"
          racket/system
          pict
          (for-syntax syntax/parse
@@ -14,11 +14,10 @@
          dfa-sigma
          dfa-delta
          dfa-start
-         dfa-accept
+         dfa-final
+         dfa-accept?
          dfa-delta-star
-         dfa-configurations
-         dfa->dot
-         dfa->pict)
+         dfa-configurations)
 
 ;; testing if something is a DFA
 
@@ -56,7 +55,7 @@
   (filter (lambda (p) (not (member p dl))) allp))
 
 (define (complete? m)
-  (andmap (lambda (p) (member p (dfa-delta m)))
+  (andmap (lambda (p) (member p (map car (dfa-delta m))))
           (all-pairs (dfa-states m)
                      (dfa-sigma m))))
 
@@ -87,7 +86,7 @@
     [(_ start:id (end:id ...) [state:id : sym:expr -> next:id] ...)
     #:fail-when (check-duplicates (syntax->datum #'(list (cons 'state 'sym) ...)))
                 "This finite machine is non-deterministic."
-    #'(complete (fa 'dfa 
+     #'(complete (fa 'dfa
                     (remove-duplicates (append (syntax->datum #'(state ...))
                                                (syntax->datum #'(next ...))
                                                (syntax->datum #'(start))))
@@ -95,44 +94,6 @@
                     (list (cons (cons 'state 'sym) 'next) ...)
                     'start
                     (list 'end ...)))]))
-
-;; creating a dot program for the dfa
-
-(define (dfa->dot m)
-  (match m
-    [(fa ty states sigma delta in final)
-     (define (build-shape s)
-       (if (member s final) "doublecircle" "circle"))
-     (create-dot 'digraph
-                 (append (list (def-attr 'top-level 'rankdir "LR")
-                               (def-attr 'top-level 'size "8.5")
-                               (def-node 'qi (list (def-attr 'node 'shape "point"))))
-                         (map (lambda (e) (def-node
-                                            e
-                                            (list (def-attr
-                                                    'node
-                                                    'shape
-                                                    (build-shape e)))))
-                              states)
-                         (map (lambda (e) (def-edge
-                                            'directed
-                                            (car (car e))
-                                            (cdr e)
-                                            (list (def-attr 'edge 'label (cdr (car e))))))
-                              delta)
-                         (list (def-edge 'directed 'qi in '()))))]))
-
-;; creating a picture for a DFA
-
-(define (dfa->pict m)
-  (define code (dot-code (dfa->dot m)))
-  (define dot-path (find-executable-path "/usr/local/bin/dot"))
-  (define dot-file (make-temporary-file "~a.dv"))
-  (define fig-file (make-temporary-file ".~a.png"))
-  (begin
-    (display-to-file code dot-file #:exists 'truncate)
-    (apply system* dot-path (list "-Tpng" dot-file "-o" fig-file))
-    (bitmap fig-file)))
 
 ;; extended transition function
 
@@ -146,7 +107,7 @@
 
 ;; definition of acceptance
 
-(define (dfa-accept m s)
+(define (dfa-accept? m s)
   (if (member (dfa-delta-star m (dfa-start m) s)
               (dfa-final m))
       #t
@@ -158,7 +119,7 @@
   (define (config e inp)
     (if (null? inp)
         (list (cons e 'λ))
-        (list (cons e inp)
-              (config (step m e (car inp))
-                      (cdr inp)))))
+        (cons '(e . inp)
+               (config (step m e (car inp))
+                       (cdr inp)))))
   (config (dfa-start m) s))
