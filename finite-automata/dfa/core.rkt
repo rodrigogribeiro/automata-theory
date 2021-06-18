@@ -17,7 +17,8 @@
          dfa-final
          dfa-accept?
          dfa-delta-star
-         dfa-configurations)
+         dfa-configurations
+         mk-dfa)
 
 ;; testing if something is a DFA
 
@@ -103,7 +104,10 @@
 (define (dfa-delta-star m e s)
   (if (null? s)
       e
-      (dfa-delta-star m (step m e (car s)) (cdr s))))
+      (dfa-delta-star
+       m
+       (step m e (car s))
+       (cdr s))))
 
 ;; definition of acceptance
 
@@ -123,3 +127,9 @@
                (config (step m e (car inp))
                        (cdr inp)))))
   (config (dfa-start m) s))
+
+;; constructor
+
+(define (mk-dfa states sigma delta start final)
+  (complete
+   (fa 'dfa states sigma delta start final)))

@@ -3,13 +3,13 @@
 ;; implementation of the DFA minimization
 ;; algorithm using a fixpoint computation
 
-(provide (all-defined-out))
+(provide refinement-table
+         minimize)
 
 (require "../fa.rkt"
          "core.rkt")
 
-(define (build-table m)
-  '())
+;; generating the initial partition
 
 (define (init-partition m)
   (define final (dfa-final m))
@@ -18,53 +18,122 @@
     (not (member v final)))
   (list (filter memfinal states) final))
 
-;; generating all pairs that should be tested
-
-(define (all-pairs xs)
-  (match xs
-    ['() '()]
-    [(cons y ys)
-     (append (map (lambda (z) (cons y z)) ys)
-             (all-pairs ys))]))
-
 ;; checking if two states are equivalent
 
-;; TODO fix me
-
 (define (equiv? part m s1 s2)
+  ;; alphabet from DFA
   (define sig (dfa-sigma m))
+  ;; transition function
+  (define delta (dfa-delta m))
+  ;; generating all possible triples
+  ;; from the states and alphabet symbols
   (define to-test
-    (append-map (lambda (s)
-                  (list (cons s1 s)
-                        (cons s2 s)))
-                sig))
-  (define res
-    (map (lambda (p)
-           (dict-ref (dfa-delta m) p))
-         to-test))
-  (ormap
-   (lambda (s)
-     (andmap
-      (lambda (e)
-        (member e s))
-     res))
-   part))
+    (map (lambda (s)
+           (cons s1 (cons s2 s)))
+         sig))
+  (define (find-set s)
+    (findf (lambda (x)
+             (member s x))
+           part))
+  ;; checking if some triple is formed
+  ;; by equivalent states
+  (define (check-equiv t)
+    (match t
+      [(cons s1 (cons s2 s))
+       (let ([x1 (dict-ref delta
+                           (cons s1 s))]
+             [x2 (dict-ref delta
+                           (cons s2 s))])
+         (eq? (find-set x1)
+              (find-set x2)))]))
+  ;; checking all triples formed by the
+  ;; states and alphabet symbols.
+  (andmap check-equiv to-test))
 
-(define even01
-  (dfa pp
-       (pp pi)
-       (pp : 0 -> ip)
-       (pp : 1 -> pi)
-       (ip : 0 -> pp)
-       (ip : 1 -> ii)
-       (pi : 0 -> ii)
-       (pi : 1 -> pp)
-       (ii : 0 -> pi)
-       (ii : 1 -> ip)))
+;; generating the next partition
+;; refinement
 
-(equiv? (init-partition even01) even01 'pp 'pi)
+(define (next-partition m current)
+  (append-map
+   (lambda (p)
+     (match p
+       [(cons s1 s2)
+        (group-by
+         (lambda (x) (equiv? current m s1 x))
+         p)]))
+   current))
 
-(define (next-partition current)
-  '())
+;; stop condition
 
-;; fixpoint computation operator
+(define (stop? table)
+  (set=? (car table)
+         (cadr table)))
+
+;; create the sucessive refinement list
+
+(define (refine m current)
+  (let* ([next (next-partition
+                   m
+                   (car current))]
+         [tbl (cons next current)])
+    (if (stop? tbl)
+        tbl
+        (refine m tbl))))
+
+(define (refinement-table m)
+  (define start (init-partition m))
+  (refine m (list start)))
+
+;; constructing the minimal DFA
+
+(define (set-disjoint s1 s2)
+  (set-empty? (set-intersect s1 s2)))
+
+(define (minimize m)
+  ;; getting the last partition
+  (define sts
+    (car (refinement-table m)))
+  ;; generating fresh names for states
+  (define (fresh n)
+    (string->symbol (format "s~a" n)))
+  (define fresh-names
+    (map (lambda (s n)
+           (cons s (fresh n)))
+         sts
+         (build-list (length sts)
+                     values)))
+  ;; applying the renaming
+  (define (rename s)
+    (findf (lambda (p) (member s (car p)))
+           fresh-names))
+  ;; start state
+  (define start
+    (cdr (rename (dfa-start m))))
+  ;; final states
+  (define finals
+    (map (lambda (s) (cdr (rename s)))
+     (flatten
+       (filter
+        (lambda (s)
+          (not (set-disjoint
+                s
+                (dfa-final m))))
+        sts))))
+  ;; building the transition function
+  (define (add-trans p)
+    (match p
+      [(cons (cons s1 c) s2)
+       (cons (cons (cdr (rename s1))
+                   c)
+             (cdr (rename s2)))]))
+  (define delta
+    (remove-duplicates
+     (map add-trans
+          (dfa-delta m))))
+  ;; finally, building the minimal
+  ;; dfa from its components
+  (mk-dfa (map cdr fresh-names)
+          (dfa-sigma m)
+          delta
+          start
+          finals))
