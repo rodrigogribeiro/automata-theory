@@ -7,7 +7,8 @@
          minimize)
 
 (require "../fa.rkt"
-         "core.rkt")
+         "core.rkt"
+         "../../utils/set-extras.rkt")
 
 ;; generating the initial partition
 
@@ -85,9 +86,6 @@
   (refine m (list start)))
 
 ;; constructing the minimal DFA
-
-(define (set-disjoint s1 s2)
-  (set-empty? (set-intersect s1 s2)))
 
 (define (minimize m)
   ;; getting the last partition

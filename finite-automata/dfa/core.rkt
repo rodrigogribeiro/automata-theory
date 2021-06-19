@@ -3,8 +3,6 @@
 (require syntax/parse
          "../fa.rkt"
          "../../utils/dot.rkt"
-         racket/system
-         pict
          (for-syntax syntax/parse
                      racket))
 
@@ -90,6 +88,7 @@
      #'(complete (fa 'dfa
                     (remove-duplicates (append (syntax->datum #'(state ...))
                                                (syntax->datum #'(next ...))
+                                               (syntax->datum #'(end ...))
                                                (syntax->datum #'(start))))
                     (remove-duplicates (syntax->datum #'(sym ...)))
                     (list (cons (cons 'state 'sym) 'next) ...)
