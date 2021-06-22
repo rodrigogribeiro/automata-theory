@@ -1,6 +1,7 @@
 #lang racket
 
 (require "../fa.rkt"
+         "../fa-image-builder.rkt"
          "../../utils/dot.rkt"
          "core.rkt"
          racket/system
@@ -11,34 +12,11 @@
 
 ;; creating a dot program for the dfa
 
-(define (mk-nodes states final)
-  (define (build-shape s)
-    (if (member s final) "doublecircle" "circle"))
-  (map (lambda (e)
-         (def-node e
-           (list (def-attr
-                   'node
-                   'shape
-                   (build-shape e)))))
-       states))
-
 (define dfa-configs
   (list (def-attr 'top-level 'rankdir "LR")
         (def-attr 'top-level 'size "8.5")
         (def-node 'qi
           (list (def-attr 'node 'shape "point")))))
-
-
-(define (mk-edges delta)
-  (map (lambda (e) (def-edge
-                     'directed
-                     (car (car e))
-                     (cdr e)
-                     (list (def-attr 'edge 'label (cdr (car e))))))
-       delta))
-
-(define (mark-initial in)
-  (list (def-edge 'directed 'qi in '())))
 
 (define (dfa->dot m)
   (match m

@@ -8,6 +8,7 @@
 
 
 (provide nfa?
+         nfa
          nfa-states
          nfa-sigma
          nfa-delta
@@ -44,7 +45,7 @@
     [(_ (start:id ...) (end:id ...) [state:id : sym:expr -> (next:id ...)] ...)
      #:fail-when (not (null? (filter (lambda (e) (eq? 'λ e))
                                      (syntax->datum #'(sym ...)))))
-                "This finite machine has lambda transitions."
+                "This finite machine has lambda transitions. Declare it as nfa-lam."
      #'(fa 'nfa
            (remove-duplicates (append (syntax->datum #'(state ...))
                                       (flatten (list (syntax->datum #'(next ...)) ...))
@@ -53,15 +54,6 @@
            (list (cons (cons 'state 'sym) (list (syntax->datum #'(next ...)))) ...)
            (list 'start ...)
            (list 'end ...))]))
-
-
-;; test case
-
-(define M
-  (nfa (s0) (s2)
-       (s0 : 0 -> (s0 s1))
-       (s0 : 1 -> (s0))
-       (s1 : 0 -> (s2))))
 
 
 ;; extended transition function
@@ -86,9 +78,6 @@
 (define (nfa-accept? m s)
   (not (set-disjoint (nfa-delta-star m (nfa-start m) s)
                      (nfa-final m))))
-
-;; configurations TODO fix me
-
 
 ;; constructor
 
