@@ -88,7 +88,7 @@
      #'(complete (fa 'dfa
                     (remove-duplicates (append (syntax->datum #'(state ...))
                                                (syntax->datum #'(next ...))
-                                               (syntax->)
+                                               (syntax->datum #'(end ...))
                                                (syntax->datum #'(start))))
                     (remove-duplicates (syntax->datum #'(sym ...)))
                     (list (cons (cons 'state 'sym) 'next) ...)

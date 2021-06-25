@@ -60,10 +60,3 @@
     (bitmap fig-file)))
 
 
-;; test case
-
-(define M
-  (nfa (s0 s1) (s2)
-       (s0 : 0 -> (s0 s1))
-       (s0 : 1 -> (s0))
-       (s1 : 0 -> (s2))))
