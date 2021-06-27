@@ -1,10 +1,13 @@
 #lang racket
 
 (require "core.rkt"
+         "../fa.rkt"
          "../dfa/core.rkt"
          "../dfa/image-builder.rkt"
          "../../utils/set-extras.rkt")
 
+
+(provide subset-construction)
 
 ;; definition of the subset construction
 
@@ -12,7 +15,6 @@
 (struct delta-triple
   (origin symbol target)
   #:transparent)
-
 
 (define (subset-construction nfa)
   (define states (power-set (nfa-states nfa)))
@@ -38,15 +40,8 @@
     (match t
       [(delta-triple ors sym tar)
        (cons (cons ors sym) tar)]))
-  (mk-dfa states
-          sig
-          (map mk-trans trans)
-          (nfa-start nfa)
-          finals))
-
-
-(define M
-  (nfa (s0 s1) (s2)
-       (s0 : 0 -> (s0 s1))
-       (s0 : 1 -> (s0))
-       (s1 : 0 -> (s2))))
+  (renaming (mk-dfa states
+                    sig
+                    (map mk-trans trans)
+                    (nfa-start nfa)
+                    finals)))
