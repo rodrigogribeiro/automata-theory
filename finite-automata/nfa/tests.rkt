@@ -2,6 +2,7 @@
 
 (require "core.rkt"
          "../dfa/image-builder.rkt"
+         "../fa.rkt"
          "image-builder.rkt"
          "subset-construction.rkt")
 

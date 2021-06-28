@@ -3,7 +3,8 @@
 
 (require "core.rkt"
          "image-builder.rkt"
-         "table-minimization.rkt")
+         "table-minimization.rkt"
+         "../../utils/dot.rkt")
 
 
 ;; simple example
@@ -44,6 +45,3 @@
        (st4 : 1 -> st3)
        (st5 : 0 -> st4)
        (st5 : 1 -> st5)))
-
-
-(dfa->pict (minimize mod6))

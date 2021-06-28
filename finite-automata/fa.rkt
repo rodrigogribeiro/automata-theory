@@ -45,9 +45,43 @@
              (ren-state sub e1))]))
   (define (ren-delta ds)
     (map ren-trans ds))
+  (define new-delta
+    (ren-delta (fa-delta f)))
+  (define new-start
+    (ren-state sub (fa-start f)))
+  (define new-final
+    (ren-states sub (fa-final f)))
+  (define r-states
+    (steps new-delta new-start (list new-start)))
+  (define r-delta
+    (filter (lambda (p) (member (car (car p)) r-states)) new-delta))
+  (define r-final
+    (filter (lambda (p) (member p r-states)) new-final))
   (fa (fa-type f)
-      (ren-states sub (fa-states f))
+      r-states
       (fa-sigma f)
-      (ren-delta (fa-delta f))
-      (ren-state sub (fa-start f))
-      (ren-states sub (fa-final f))))
+      r-delta
+      new-start
+      r-final))
+
+(define (one-step d s)
+  (define (sel p)
+    (match p
+      [(cons (cons s1 c) s2) (eq? s1 s)]))
+  (map (lambda (p) (cdr p)) (filter sel d)))
+
+(define (steps d s ac)
+  (define next (set-union (one-step d s)
+                          ac))
+  (cond
+    [(set=? ac next) next]
+    [else (let ([diff (set-subtract next ac)])
+            (remove-duplicates
+             (append-map
+              (lambda (x) (steps d x next))
+              diff)))]))
+
+
+(define (reachable m)
+  (define i (fa-start m))
+  (steps (fa-delta m) i (list i)))
