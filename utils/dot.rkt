@@ -13,7 +13,8 @@
          node
          edge
          attr
-         dot-code)
+         dot-code
+         dot?)
 
 
 #|
@@ -51,6 +52,9 @@ dot programs
 
 (define (def-edge type origin target attrs)
   (edge-stmt type origin target attrs))
+
+(define (dot? e)
+  (dot-spec? e))
 
 ;; macros for building the dot file spec
 

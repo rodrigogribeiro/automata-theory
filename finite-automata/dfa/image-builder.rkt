@@ -5,6 +5,7 @@
          "../../utils/dot.rkt"
          "core.rkt"
          racket/system
+         racket/contract
          pict)
 
 (provide dfa->dot
@@ -18,7 +19,8 @@
         (def-node 'qi
           (list (def-attr 'node 'shape "point")))))
 
-(define (dfa->dot m)
+(define/contract (dfa->dot m)
+  (dfa? . -> . dot?)
   (match m
     [(fa ty states sigma delta in final)
      (create-dot 'digraph

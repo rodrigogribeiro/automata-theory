@@ -3,6 +3,7 @@
 (require "fa.rkt"
          "../utils/dot.rkt"
          racket/system
+         racket/contract
          pict)
 
 (provide mk-nodes
@@ -14,7 +15,8 @@
 ;; from finite automata
 
 
-(define (mk-nodes states final)
+(define/contract (mk-nodes states final)
+  (list? list? . -> . any/c)
   (define (build-shape s)
     (if (member s final) "doublecircle" "circle"))
   (map (lambda (e)
@@ -26,7 +28,8 @@
        states))
 
 
-(define (mk-edges delta)
+(define/contract (mk-edges delta)
+  (list? . -> . any/c)
   (map (lambda (e) (def-edge
                      'directed
                      (car (car e))
@@ -34,5 +37,6 @@
                      (list (def-attr 'edge 'label (cdr (car e))))))
        delta))
 
-(define (mark-initial in)
+(define/contract (mark-initial in)
+  (symbol? . -> . list?)
   (list (def-edge 'directed 'qi in '())))

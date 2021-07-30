@@ -16,5 +16,12 @@
        (s2 : 0 -> (s3))))
 
 
-(dfa->pict (subset-construction M))
-(nfa->pict M)
+(define foo (reachable (renaming (subset-construction M))))
+
+; foo
+
+(renaming (reachable foo))
+
+(dfa->pict (renaming foo))
+
+; (nfa->pict M)

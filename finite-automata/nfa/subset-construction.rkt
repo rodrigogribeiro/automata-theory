@@ -11,7 +11,6 @@
 
 ;; definition of the subset construction
 
-
 (struct delta-triple
   (origin symbol target)
   #:transparent)
@@ -40,8 +39,8 @@
     (match t
       [(delta-triple ors sym tar)
        (cons (cons ors sym) tar)]))
-  (renaming (mk-dfa states
-                    sig
-                    (map mk-trans trans)
-                    (nfa-start nfa)
-                    finals)))
+  (mk-dfa states
+          sig
+          (map mk-trans trans)
+          (nfa-start nfa)
+          finals))

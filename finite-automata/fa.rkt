@@ -14,19 +14,20 @@
    final)    ;; final states
   #:transparent)
 
+;; calcutating a renaming substitution for states
+
 (define (ren-state sub s)
   (match sub
     ['() s]
     [(cons x xs)
      (cond
        [(eq? (car x) s) (cdr x)]
+       [(symbol? (car x)) (ren-state xs s)]
        [(set=? (car x) s) (cdr x)]
        [else (ren-state xs s)])]))
 
-
 (define (ren-states sub s)
   (map (lambda (x) (ren-state sub x)) s))
-
 
 (define (renaming f)
   (define sts (fa-states f))
@@ -45,24 +46,14 @@
              (ren-state sub e1))]))
   (define (ren-delta ds)
     (map ren-trans ds))
-  (define new-delta
-    (ren-delta (fa-delta f)))
-  (define new-start
-    (ren-state sub (fa-start f)))
-  (define new-final
-    (ren-states sub (fa-final f)))
-  (define r-states
-    (steps new-delta new-start (list new-start)))
-  (define r-delta
-    (filter (lambda (p) (member (car (car p)) r-states)) new-delta))
-  (define r-final
-    (filter (lambda (p) (member p r-states)) new-final))
   (fa (fa-type f)
-      r-states
+      (ren-states sub sts)
       (fa-sigma f)
-      r-delta
-      new-start
-      r-final))
+      (ren-delta (fa-delta f))
+      (ren-state sub (fa-start f))
+      (ren-states sub (fa-final f))))
+
+;; calculating the set of reachable states
 
 (define (one-step d s)
   (define (sel p)
@@ -81,7 +72,19 @@
               (lambda (x) (steps d x next))
               diff)))]))
 
-
 (define (reachable m)
   (define i (fa-start m))
-  (steps (fa-delta m) i (list i)))
+  (define r-states (steps (fa-delta m) i (list i)))
+  (define r-delta
+    (filter (lambda (p) (member (car (car p))
+                                r-states))
+            (fa-delta m)))
+  (define r-final (filter (lambda (p) (member p r-states))
+                          (fa-final m)))
+  (fa (fa-type m)
+      r-states
+      (fa-sigma m)
+      r-delta
+      i
+      r-final))
+    
