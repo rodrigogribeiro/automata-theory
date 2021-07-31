@@ -45,7 +45,7 @@
     [(_ (start:id ...) (end:id ...) [state:id : sym:expr -> (next:id ...)] ...)
      #:fail-when (not (null? (filter (lambda (e) (eq? 'λ e))
                                      (syntax->datum #'(sym ...)))))
-                "This finite machine has lambda transitions. Declare it as nfa-lam."
+                "This finite machine has lambda transitions. Declare it as nfaλ."
      #'(fa 'nfa
            (remove-duplicates (append (syntax->datum #'(state ...))
                                       (flatten (list (syntax->datum #'(next ...)) ...))

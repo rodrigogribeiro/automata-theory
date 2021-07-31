@@ -20,7 +20,7 @@
 
 ; foo
 
-(renaming (reachable foo))
+; (renaming (reachable foo))
 
 (dfa->pict (renaming foo))
 
