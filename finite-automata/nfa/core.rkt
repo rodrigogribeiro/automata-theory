@@ -13,7 +13,8 @@
          nfa-sigma
          nfa-delta
          nfa-start
-         nfa-final)
+         nfa-final
+         mk-nfa)
 
 
 ;; testing if something is a nfa

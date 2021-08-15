@@ -1,5 +1,6 @@
 #lang racket
 
+(require racket/contract)
 
 (provide set-disjoint
          power-set
@@ -26,5 +27,6 @@
             (map (lambda (ys) (incl x ys)) ps)))]))
 
 
-(define (big-union ss)
+(define/contract (big-union ss)
+  (list? . -> . list?)
   (foldr set-union '() ss))

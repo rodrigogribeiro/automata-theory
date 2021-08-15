@@ -4,10 +4,12 @@
          "../fa.rkt"
          "../dfa/core.rkt"
          "../dfa/image-builder.rkt"
-         "../../utils/set-extras.rkt")
+         "../../utils/set-extras.rkt"
+         racket/contract)
 
 
-(provide subset-construction)
+(provide subset-construction
+         nfa->dfa)
 
 ;; definition of the subset construction
 
@@ -15,7 +17,8 @@
   (origin symbol target)
   #:transparent)
 
-(define (subset-construction nfa)
+(define/contract (subset-construction nfa)
+  (nfa? . -> . dfa?)
   (define states (power-set (nfa-states nfa)))
   (define sig (nfa-sigma nfa))
   (define delta (nfa-delta nfa))
@@ -44,3 +47,7 @@
           (map mk-trans trans)
           (nfa-start nfa)
           finals))
+
+(define/contract (nfa->dfa m)
+  (nfa? . -> . dfa?)
+  (renaming (reachable (renaming (subset-construction m)))))

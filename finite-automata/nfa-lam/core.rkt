@@ -6,6 +6,16 @@
          (for-syntax syntax/parse
                      racket))
 
+(provide nfaλ-states
+         nfaλ-sigma
+         nfaλ-delta
+         nfaλ-start
+         nfaλ-final
+         nfaλ
+         nfaλ?
+         nfaλ-delta-star
+         nfaλ-accept?)
+
 
 (define (nfaλ? m)
   (eq? 'nfaλ (fa-type m)))
@@ -36,7 +46,7 @@
            (remove-duplicates (append (syntax->datum #'(state ...))
                                       (flatten (list (syntax->datum #'(next ...)) ...))
                                       (syntax->datum #'(start ...))))
-           (remove-duplicates (syntax->datum #'(sym ...)))
+           (set-remove (remove-duplicates (syntax->datum #'(sym ...))) 'λ)
            (list (cons (cons 'state 'sym) (list (syntax->datum #'(next ...)))) ...)
            (list 'start ...)
            (list 'end ...))]))
@@ -45,11 +55,11 @@
 
 (define (nfaλ-delta-star m e s)
   (define (step x a)
-    (append (dict-ref (nfaλ-delta m)
-                      (cons e a))
-            (dict-ref (nfaλ-delta m)
-                      (cons e 'λ)
-                      '())))
+    (set-union (dict-ref (nfaλ-delta m)
+                         (cons e a))
+               (dict-ref (nfaλ-delta m)
+                         (cons e 'λ)
+                         '())))
   (define (delta-step E a)
     (append-map (λ (s) (step s a)) E))
   (cond
